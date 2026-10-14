@@ -28,7 +28,7 @@ A plate detector finds plates in each frame, an OCR model reads them, and a trac
 Requires Python 3.10+ (Ubuntu 24.04 ships 3.12).
 
 ```bash
-git clone https://github.com/MGeezy1/car-narc.git && cd car-narc
+git clone https://github.com/MGeezy1/Car-Narc.git && cd Car-Narc
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
