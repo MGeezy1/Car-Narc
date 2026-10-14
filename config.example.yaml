@@ -1,0 +1,61 @@
+# Car Narc configuration. Copy to config.yaml (which is git-ignored) and edit.
+#   cp config.example.yaml config.yaml
+# Unknown keys are rejected on load so typos don't silently fall back to defaults.
+
+camera:
+  # One of:
+  #   0 / 1 / ...            USB webcam index
+  #   rtsp://user:pw@host/.. IP camera stream
+  #   /path/to/video.mp4     video file (processed in order, no frame dropping)
+  #   picamera2              Raspberry Pi CSI camera (needs picamera2 installed)
+  source: "0"
+  width: 1920
+  height: 1080
+  fps: 30
+  # picamera2 only. 500 us = 1/2000 s, the slowest shutter that freezes a plate at
+  # highway speed. Raise it only if the image is too dark and you accept some blur.
+  exposure_us: 500
+  gain: null            # null = auto
+
+detection:
+  # Larger input = finds smaller (more distant) plates, but slower on CPU.
+  # Options: yolo-v9-t-256 / 384 / 416 / 512 / 640 -license-plate-end2end, yolo-v9-s-608-license-plate-end2end
+  plate_model: yolo-v9-t-640-license-plate-end2end
+  conf_thresh: 0.4
+  # Region of interest as fractions of the frame: [x, y, width, height].
+  # Cropping to the lane(s) is the cheapest way to make distant plates bigger to the
+  # detector. Default is the whole frame.
+  roi: [0.0, 0.0, 1.0, 1.0]
+  # Padding added around each detected plate before OCR, as a fraction of its size.
+  crop_margin: 0.08
+
+ocr:
+  model: cct-xs-v2-global-model
+  device: cpu           # cpu | cuda | auto
+
+tracking:
+  iou_threshold: 0.2
+  # Fallback association: a new box within this many plate-widths of a track's
+  # predicted position still matches (fast movers can have zero box overlap).
+  gate_widths: 3.0
+  max_missed_frames: 8
+  # A track must have this many OCR reads before it can produce a result.
+  min_reads: 2
+
+plate_rules:
+  min_length: 5
+  max_length: 8
+  # Drop results whose consensus confidence is below this (0..1).
+  min_confidence: 0.5
+
+storage:
+  data_dir: data
+  save_snapshots: true
+  jpeg_quality: 90
+
+web:
+  host: 127.0.0.1       # keep loopback and use `tailscale serve`, or set a token and bind wider
+  port: 8080
+  # Name of the environment variable holding the dashboard password.
+  # Required whenever host is not loopback.
+  token_env: CARNARC_TOKEN

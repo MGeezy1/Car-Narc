@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+
+# This repo is public. Nothing captured by a running device belongs in it.
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite*
+snapshots/
+captures/
+
+# Local config and secrets (config.example.yaml is the tracked template)
+config.yaml
+config.local.yaml
+.env
+*.key
+*.pem
+
+# Downloaded model weights are cached by the libraries outside the repo,
+# but keep any local copies out too.
+*.onnx
+*.hef
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
