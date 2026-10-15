@@ -26,7 +26,18 @@ A result is only emitted once the plate leaves view (or the stream ends), and on
 
 Tracks match new detections by IoU against the *predicted* box (last box plus per-frame velocity). Fast movers can jump more than a plate width between frames, giving zero overlap, so a center-distance gate (`tracking.gate_widths`) provides a fallback match, scored below any real overlap.
 
-Known limitation: two plates very close together (tailgating) can be associated to the wrong track. The vote's agreement term makes such a track's confidence low rather than silently wrong, but it is not solved.
+Known limitations: track timeouts (`tracking.max_missed_frames`) count processed *frames*, not seconds, so they mean different things at 30 fps and 5 fps. At low frame rates a track can also pick up a neighbouring car's reads. And two plates very close together (tailgating) can be associated to the wrong track. The vote's agreement term makes such a track's confidence low rather than silently wrong, but it is not solved.
+
+## Merging fragments of one vehicle
+
+The tracker can lose a plate for a moment (a missed detection, a blur) and start a new track when it reappears, so one car can become several reads, and the early fragments are usually the blurriest and wrongest. On a test video the fragments were strictly *sequential* (gap of 0.3-0.5 s), whereas two different cars side by side are visible at the *same* time. `merge.py` uses that:
+
+- A finished read is held briefly. A later read merges into it only if their time spans **do not overlap**, the gap is within `merge.window_s`, and the plates are within `merge.max_edit_distance` of each other.
+- The best-supported read (reads x confidence) wins; the losing plates stay in `alternatives`.
+- A read keeps waiting while a track that began right after it is still live, for at most `merge.max_hold_s`. Without this, the car's long track is still open when the fragment's window runs out, and they never meet.
+- Matching uses only plates actually merged in, **never the tracker's own `alternatives`**: at low frame rates a track can absorb a neighbouring car's reads, and matching on those merged two different vehicles in testing (now a regression test).
+
+Cost: a read is emitted up to `window_s` seconds (or until its continuation finishes) after the plate leaves view. `merge.window_s: 0` turns it off.
 
 ## Details that matter for accuracy
 
@@ -48,6 +59,7 @@ src/carnarc/
   detect.py     plate detector wrapper (ROI handling)
   ocr.py        OCR wrapper (color order, confidence alignment)
   tracker.py    association + voting   <- the accuracy-critical module
+  merge.py      joins duplicate reads of one vehicle
   pipeline.py   wires it together, stats, sink fan-out
   storage.py    SQLite, watchlist, snapshot files
   outputs.py    sinks (log, store)

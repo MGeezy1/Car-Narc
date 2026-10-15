@@ -13,6 +13,7 @@ A plate detector finds plates in each frame, an OCR model reads them, and a trac
 | Plate detection (open-image-models, YOLOv9) with lane ROI cropping | Loads and runs; **not yet validated on real plate photos** |
 | Plate OCR (fast-plate-ocr) | Verified on rendered plate crops, with correct color handling and per-character confidences |
 | Multi-frame tracker + voting | Unit-tested, including fast movers with no box overlap between frames |
+| Duplicate-read merge (one car read twice) | Unit-tested; verified on one real traffic clip, see [docs/EVALUATION.md](docs/EVALUATION.md) |
 | SQLite log, snapshots, watchlist (exact + near match) | Unit-tested |
 | Web dashboard + JSON API with auth | Unit-tested |
 | `carnarc bench` accuracy scoring | Unit-tested; needs your labeled photos to be useful |
@@ -75,6 +76,7 @@ Personal project. Run it on your own property or with the landowner's permission
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the pipeline works and why, including the speed math
 - [docs/HARDWARE.md](docs/HARDWARE.md): parts list, power budget, mounting, night
+- [docs/EVALUATION.md](docs/EVALUATION.md): how it did on real footage, and at lower frame rates
 
 ## Roadmap
 

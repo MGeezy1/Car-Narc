@@ -11,6 +11,7 @@ from typing import Iterable, Sequence
 from .camera import Frame, FrameSource
 from .config import Config
 from .detect import PlateDetectorLike
+from .merge import ReadMerger
 from .models import Observation, PlateRead
 from .ocr import PlateReaderLike
 from .outputs import LogSink, Sink, StoreSink
@@ -55,6 +56,7 @@ class Pipeline:
         self.detector = detector
         self.reader = reader
         self.tracker = tracker or PlateTracker(cfg.tracking, cfg.plate_rules)
+        self.merger = ReadMerger(cfg.merge)
         self.sinks = list(sinks)
         self.stats = Stats()
 
@@ -79,18 +81,25 @@ class Pipeline:
             for det, res, crop in zip(kept, results, crops)
         ]
         # Always call update(), even with no detections: that is how tracks age out.
-        reads = self.tracker.update(observations, frame.idx)
+        for read in self.tracker.update(observations, frame.idx):
+            self.merger.push(read)
+        # Reads are released once the merge window has passed since the plate was last
+        # seen (immediately when merging is off), so a vehicle's fragments can join up.
+        # A read whose probable continuation is still being tracked keeps waiting for it.
+        ready = self.merger.release(frame.ts, live_starts=[t.first_ts for t in self.tracker.tracks])
 
         self.stats.frames += 1
         self.stats.detections += len(kept)
         self.stats.busy_seconds += time.perf_counter() - t0
-        self._emit(reads)
-        return reads
+        self._emit(ready)
+        return ready
 
     def finish(self) -> list[PlateRead]:
-        reads = self.tracker.flush()
-        self._emit(reads)
-        return reads
+        for read in self.tracker.flush():
+            self.merger.push(read)
+        ready = self.merger.release(0.0, flush=True)
+        self._emit(ready)
+        return ready
 
     def run(self, frames: Iterable[Frame]) -> None:
         last_log = time.time()

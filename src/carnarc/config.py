@@ -56,6 +56,19 @@ class PlateRulesConfig:
 
 
 @dataclass
+class MergeConfig:
+    # A finished read is held this long (seconds after the plate was last seen) in
+    # case another track of the same vehicle follows. 0 disables merging, and reads
+    # are emitted immediately.
+    window_s: float = 3.0
+    # Plates this close (single-character edits) can be the same vehicle.
+    max_edit_distance: int = 2
+    # A read is also held while a track that started right after it is still live (that
+    # track is probably the same vehicle, not finished yet). Never longer than this.
+    max_hold_s: float = 10.0
+
+
+@dataclass
 class StorageConfig:
     data_dir: str = "data"
     save_snapshots: bool = True
@@ -76,6 +89,7 @@ class Config:
     ocr: OcrConfig = field(default_factory=OcrConfig)
     tracking: TrackingConfig = field(default_factory=TrackingConfig)
     plate_rules: PlateRulesConfig = field(default_factory=PlateRulesConfig)
+    merge: MergeConfig = field(default_factory=MergeConfig)
     storage: StorageConfig = field(default_factory=StorageConfig)
     web: WebConfig = field(default_factory=WebConfig)
 
@@ -137,6 +151,8 @@ def validate(cfg: Config) -> None:
         raise ConfigError("plate_rules.min_length cannot exceed max_length")
     if cfg.tracking.min_reads < 1:
         raise ConfigError("tracking.min_reads must be at least 1")
+    if cfg.merge.window_s < 0 or cfg.merge.max_edit_distance < 0 or cfg.merge.max_hold_s < 0:
+        raise ConfigError("merge.window_s, merge.max_edit_distance and merge.max_hold_s cannot be negative")
     if not 1 <= cfg.storage.jpeg_quality <= 100:
         raise ConfigError("storage.jpeg_quality must be 1..100")
     cfg.camera.source = str(cfg.camera.source)

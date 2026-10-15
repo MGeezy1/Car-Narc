@@ -48,6 +48,17 @@ plate_rules:
   # Drop results whose consensus confidence is below this (0..1).
   min_confidence: 0.5
 
+merge:
+  # One vehicle can end up as several tracks (the detector loses a plate for a moment,
+  # then finds it again). A finished read is held this many seconds after the plate was
+  # last seen, and merged with a later read of a near-identical plate that does not
+  # overlap it in time; the best-supported read wins. 0 = off (reads emitted at once).
+  window_s: 3.0
+  max_edit_distance: 2
+  # A read is also held while a track that began just after it is still live (probably
+  # the same vehicle, not finished yet). Never held longer than this many seconds.
+  max_hold_s: 10.0
+
 storage:
   data_dir: data
   save_snapshots: true
