@@ -77,6 +77,12 @@ Personal project. Run it on your own property or with the landowner's permission
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the pipeline works and why, including the speed math
 - [docs/HARDWARE.md](docs/HARDWARE.md): parts list, power budget, mounting, night
 - [docs/EVALUATION.md](docs/EVALUATION.md): how it did on real footage, and at lower frame rates
+- [docs/INSTALL.md](docs/INSTALL.md): install on a PC or a Pi 5, systemd services, Tailscale
+- [docs/CONFIGURATION.md](docs/CONFIGURATION.md): every setting
+- [docs/USAGE.md](docs/USAGE.md): commands, dashboard, JSON API, watchlist, troubleshooting
+- [docs/TUNING.md](docs/TUNING.md): getting the most accurate reads
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): tests, adding config keys and outputs
+- [CHANGELOG.md](CHANGELOG.md)
 
 ## Roadmap
 
